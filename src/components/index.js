@@ -5,7 +5,6 @@ import { faTrash, faPen, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { Memorize, FeedBack } from '../lib'
 import { api } from '../lib/api/index'
 import { Context, functionsToDispatch } from '../store/'
-// eslint-disable-next-line no-unused-vars
 import {
   StyledText,
   StyledRow,
@@ -20,6 +19,7 @@ import {
   StyledSiglaField,
   StyledPracaField
 } from './styledComponents'
+/* react-hooks/exhaustive-deps */
 const { delete: del, update, change, create: ct } = functionsToDispatch
 export function Button ({ ...props }) {
   function Element () {
@@ -45,49 +45,57 @@ export function PopUP ({ isOpen, flag, ...props }) {
   const [state, setState] = useState({ estado, praca, sigla })
   function handleInput (e) {
     setState({ ...state, [e.target.name]: e.target.value })
-    console.log(dados)
+    e.preventDefault()
   }
   function submit (e) {
-    if (flag) {
-      api({ url: `http://127.0.0.1:3333/${flag}`, data: state, method: 'PATCH' },
-        r => {
-          console.log({ ...r })
-          if (!r.err) {
-            setContext(update(r))
-            closePopup()
-            FeedBack.fire({
-              type: 'success'
-            })
-          } else {
-            FeedBack.fire({
-              type: 'warning',
-              title: r.msg
-            })
+    if (state.praca) {
+      if (flag) {
+        api({ url: `http://127.0.0.1:3333/${flag}`, data: state, method: 'PATCH' },
+          r => {
+            if (!r.err) {
+              setContext(update(r))
+              closePopup()
+              FeedBack.fire({
+                type: 'success'
+              })
+            } else {
+              FeedBack.fire({
+                type: 'warning',
+                title: r.msg
+              })
+            }
           }
-        }
-      )
+        )
+      } else {
+        console.log({ data: state, method: 'POST' })
+        api({ url: `http://127.0.0.1:3333/`, data: state, method: 'POST' },
+          r => {
+            if (!r.err) {
+              setContext(ct(r))
+              closePopup()
+              FeedBack.fire({
+                type: 'success'
+              })
+            } else {
+              FeedBack.fire({
+                type: 'warning',
+                title: r.msg
+              })
+            }
+          }
+        )
+      }
     } else {
-      api({ url: `http://127.0.0.1:3333/`, data: state, method: 'POST' },
-        r => {
-          console.log({ ...r })
-          if (!r.err) {
-            setContext(ct(r))
-            closePopup()
-            FeedBack.fire({
-              type: 'success'
-            })
-          } else {
-            FeedBack.fire({
-              type: 'warning',
-              title: r.msg
-            })
-          }
-        }
-      )
+      FeedBack.fire({
+        type: 'info',
+        title: 'O nome da praça é obrigatorio'
+      })
     }
+    e.preventDefault()
   }
-  function closePopup () {
+  function closePopup (e) {
     setContext(change({}))
+    // e.preventDefault()
   }
   return (
     <StyledOverLay isOpen={isOpen}>
@@ -96,8 +104,8 @@ export function PopUP ({ isOpen, flag, ...props }) {
         <StyledWrapFields>
           <StyledPracaField type='text' name="praca" placeholder="Praça" onChange={handleInput} value={state.praca || ''} />
           <StyledSiglaField type='text' name="sigla" placeholder="Sigla" onChange={handleInput} value={state.sigla || ''} />
-          <StyledEstadoSelect name="estado" value={state.estado} onChange={handleInput} defaultValue={''}>
-            <option value="" disabled >Estado</option>
+          <StyledEstadoSelect name="estado" value={state.estado} onChange={handleInput} >
+            <option value="" ></option>
             <option value="AC">Acre</option>
             <option value="AL">Alagoas</option>
             <option value="AP">Amapá</option>
@@ -229,12 +237,14 @@ export function Praca ({ ...props }) {
       () => { console.log('deletado') }
     )
     setContext(del(id))
+    e.preventDefault()
   }
   function updateing (e) {
     setContext(change(props.data))
+    e.preventDefault()
   }
-  return (useMemo(() => (
-    <div ref={RowReference}>
+  return (
+    <li ref={RowReference}>
       <Row
         _custom={{ key: 'border-left', value: '10px solid #cdcdcd' }}
         _m={'0 0 1px 0'}
@@ -272,6 +282,6 @@ export function Praca ({ ...props }) {
           </Button>
         </StyledIcons>
       </Row>
-    </div>
-  ), [ props ]))
+    </li>
+  )
 }

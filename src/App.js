@@ -7,11 +7,15 @@ import { api } from './lib/api/index'
 function App () {
   const [data, setData] = useContext(Context)
   const { init, create, update, delete: del, change } = functionsToDispatch
+  function openPopup (e) {
+    setData(change({}))
+    e.preventDefault()
+  }
   useEffect(() => {
     api({ url: 'http://127.0.0.1:3333/' }, pracas => {
       setData(init(pracas))
     })
-  }, [])
+  })
   function Element () {
     return () =>
     <>
@@ -32,7 +36,7 @@ function App () {
               _p={'1px 6px'}
               _color={'white'}
               _bg_color={'#c62382'}
-              onClick={() => setData(change({}))}
+              onClick={openPopup}
             >
               +
             </Button>
@@ -51,7 +55,7 @@ function App () {
         </Row>
       </header>
       <Content _p={'16px 12px'} data={data.pracas} _bg_color={'#f1f1f1f1'} />
-      { data.isOpen && <PopUP isOpen={data.isOpen} praca={data.dataPopup.praca } estado={data.dataPopup.estado } sigla={data.dataPopup.sigla} flag={ data.dataPopup.id || false } /> }
+      { data && data.isOpen && <PopUP isOpen={data.isOpen} praca={data.dataPopup.praca } estado={data.dataPopup.estado || '' } sigla={data.dataPopup.sigla || '' } flag={ data.dataPopup.id || false } /> }
     </>
   }
   return (
